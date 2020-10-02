@@ -52,6 +52,7 @@ use std::boxed::Box;
 pub const STACKS_BOOT_CODE_CONTRACT_ADDRESS : &'static str = "ST000000000000000000002AMW42H";
 
 pub const STACKS_BOOT_CODE : &'static [(&'static str, &'static str)] = &[
+    ("costs", std::include_str!("costs.clar")),
     ("pox", std::include_str!("pox.clar")),
     ("lookup", std::include_str!("lockup.clar"))
 ];
