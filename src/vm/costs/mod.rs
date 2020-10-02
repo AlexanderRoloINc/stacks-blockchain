@@ -1,8 +1,9 @@
 pub mod cost_functions;
+pub mod cost_functions_clar;
 pub mod constants;
 
 use std::{fmt, cmp};
-use vm::types::TypeSignature;
+use vm::types::{TypeSignature, QualifiedContractIdentifier};
 use vm::Value;
 use std::convert::TryFrom;
 use rusqlite::types::{ToSql, ToSqlOutput, FromSql, FromSqlResult, ValueRef};
@@ -187,6 +188,18 @@ pub struct SimpleCostSpecification {
     pub read_count: CostFunctions,
     pub read_length: CostFunctions,
     pub runtime: CostFunctions,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+pub struct ClarityCostFunctionReference {
+    pub contract_id: QualifiedContractIdentifier,
+    pub function_name: &'static str,
+}
+
+impl ClarityCostFunctionReference {
+    fn new(id: QualifiedContractIdentifier, name: &'static str) -> ClarityCostFunctionReference {
+        ClarityCostFunctionReference { contract_id: id, function_name: name }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
