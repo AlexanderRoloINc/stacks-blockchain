@@ -142,13 +142,22 @@ lazy_static! {
 }
 
 fn eval_contract_cost(
-    mut env: Environment,
+    env: &mut Environment,
     cost_function: ClarityCostFunctionReference,
-    input_size: u64) -> Result<Value, &'static str> {
+    input_size: Option<u64>) -> Result<Value, &'static str> {
 
-    let eval_result = env.eval_read_only(
-        &cost_function.contract_id,
-        format!("({} u{})", cost_function.function_name, input_size).as_str());
+    let eval_result = match input_size {
+        Some(size) => {
+            env.eval_read_only(
+                &cost_function.contract_id,
+                format!("({} u{})", cost_function.function_name, size).as_str())
+        }
+        None => {
+            env.eval_read_only(
+                &cost_function.contract_id,
+                format!("({})", cost_function.function_name).as_str())
+        }
+    };
 
     match eval_result {
         Ok(Value::Tuple(data)) => {
@@ -170,8 +179,11 @@ fn test_eval_contract_cost() {
 
     // deploy boot cost contract
     owned_env.initialize_contract(boot_code_id("costs"), std::include_str!("../../chainstate/stacks/boot/costs.clar")).unwrap();
-    let env = owned_env.get_exec_environment(None);
+    let mut env = owned_env.get_exec_environment(None);
 
-    let cost = eval_contract_cost(env, COSTS.get(&ClarityCostFunctionName::ANALYSIS_TYPE_ANNOTATE).unwrap().clone(), 10);
+    let cost = eval_contract_cost(&mut env, COSTS.get(&ClarityCostFunctionName::ANALYSIS_TYPE_ANNOTATE).unwrap().clone(), Some(10));
     assert!(cost == Ok(Value::UInt(11)));
+
+    let cost = eval_contract_cost(&mut env, COSTS.get(&ClarityCostFunctionName::STX_TRANSFER).unwrap().clone(), None);
+    assert!(cost == Ok(Value::UInt(1)));
 }
